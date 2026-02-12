@@ -1,6 +1,6 @@
 # Innomatics GenAI Internship - February 2026
 
-Welcome to my repository for the **Generative AI Internship** at **Innomatics Research Labs**. This repo serves as a centralized hub for all the assignments I conduct during the program.
+Welcome to my repository for the **Generative AI Internship** at **Innomatics Research Labs**. This repo serves as a centralized hub for all the assignments I submited during the program.
 
 ## 🚀 About the Internship
 This program focuses on mastering Generative AI technologies, including Large Language Models (LLMs), Prompt Engineering, RAG (Retrieval-Augmented Generation), and deploying AI applications.
