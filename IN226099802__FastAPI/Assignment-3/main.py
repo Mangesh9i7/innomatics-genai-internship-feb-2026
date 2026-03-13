@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Query
+from fastapi import FastAPI, Query, Response,  status
 from pydantic import BaseModel, Field
 from typing import Optional, List
 
@@ -266,3 +266,100 @@ def confirm_new_order(order_id: int):
             order["status"] = "confirmed" 
             return {"message": "Order confirmed successfully", "order": order}
     return {"error": "Order not found"}
+
+#----------------------------------------------------------------------------------------------------------------------------------------------------
+# ---------------------------------------------------------
+#                  DAY 3 PRACTICE TASKS 
+# ---------------------------------------------------------
+
+class NewProduct(BaseModel):
+    name     : str
+    price    : int
+    category : str
+    in_stock : bool = True
+
+# Endpoint — POST: Add 2 New Products Using POST
+@app.post("/products")
+def add_new_product(product: NewProduct, response: Response):
+    for p in products:
+        if p["name"].lower() == product.name.lower():
+            response.status_code = status.HTTP_400_BAD_REQUEST
+            return{"error": "Product already exist"}
+    new_id = max(p["id"] for p in products) + 1
+    new_product = {
+        "id"       : new_id,
+        "name"     : product.name,
+        "price"    : product.price,
+        "category" : product.category,
+        "in_stock" : product.in_stock
+    }
+    products.append(new_product)
+    return{"message" : "Product added", "product" : new_product}
+
+# Endpoint -- GET:- Build GET /products/audit — Inventory Summary
+@app.get("/products/audit")
+def product_summary():
+    in_stock   = [p for p in products if p["in_stock"]]
+    out_stock  = [p for p in products if not p["in_stock"]]
+    expensive  = max(products, key=lambda p: p["price"])
+    total_stock_value = sum(p['price'] * 10 for p in in_stock)
+    return {
+        "total_products":     len(products),
+        "in_stock_count":     len(in_stock),
+        "out_of_stock_count": len(out_stock),
+        "most_expensive":     {"name": expensive["name"], "price": expensive["price"]},
+        "total_stock_value": total_stock_value
+    }
+
+# Endpoint-- PUT:- Apply a Category-Wide Discount
+@app.put("/products/discount")
+def apply_discount(
+    category: str = Query(..., description="Product category"),
+    discount_percent: int = Query(..., ge=1, le=99, description="Discount percentage")
+):
+
+    updated_products = []
+
+    for p in products:
+        if p["category"].lower() == category.lower():
+
+            new_price = int(p["price"] * (1 - discount_percent / 100))
+            p["price"] = new_price
+
+            updated_products.append({
+                "name": p["name"],
+                "new_price": new_price
+            })
+
+    if not updated_products:
+        return {"message": "No products found in this category"}
+
+    return {
+        "category": category,
+        "discount_percent": discount_percent,
+        "updated_count": len(updated_products),
+        "products": updated_products
+    }
+
+# Endpoint -- PUT: Restock the USB Hub Using PUT
+@app.put("/products/{product_id}")
+def upddate_product(product_id: int, price: int = None, in_stock: bool = None):
+    for product in products:
+        if product["id"] == product_id:
+            if price is not None:
+                product["price"] = price
+            if in_stock is not None:
+                product["in_stock"] = in_stock
+            return{"message": "Product updated successfully", "product": product}
+    return {"error": "Product not found"}    
+
+# Endpoint -- DELETE: Delete a Product and Handle Missing IDs
+@app.delete("/products/{product_id}")
+def delete_product(product_id: int, response: Response):
+    for p in products:
+        if p["id"] == product_id:
+             products.remove(p)
+             return {"message": f"Product '{p['name']}' deleted"}
+    response.status_code = status.HTTP_404_NOT_FOUND
+    return {"error": "Product not found"}
+        
