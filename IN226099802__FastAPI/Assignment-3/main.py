@@ -267,9 +267,8 @@ def confirm_new_order(order_id: int):
             return {"message": "Order confirmed successfully", "order": order}
     return {"error": "Order not found"}
 
-#----------------------------------------------------------------------------------------------------------------------------------------------------
 # ---------------------------------------------------------
-#                  DAY 3 PRACTICE TASKS 
+#                  DAY 4 PRACTICE TASKS 
 # ---------------------------------------------------------
 
 class NewProduct(BaseModel):
